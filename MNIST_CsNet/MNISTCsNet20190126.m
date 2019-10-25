@@ -1,79 +1,79 @@
-%% ×¼±¸¹¤×÷¿Õ¼ä
+%% å‡†å¤‡å·¥ä½œç©ºé—´
 clc
 clear all
 close all
-%% µ¼ÈëÊı¾İ
+%% å¯¼å…¥æ•°æ®
 digitDatasetPath = fullfile('./', '/HandWrittenDataset/');
 imds = imageDatastore(digitDatasetPath, ...
-    'IncludeSubfolders',true,'LabelSource','foldernames');% ²ÉÓÃÎÄ¼ş¼ĞÃû³Æ×÷ÎªÊı¾İ±ê¼Ç
+    'IncludeSubfolders',true,'LabelSource','foldernames');% å¯è¯»å–å…¨éƒ¨å­æ–‡ä»¶å¤¹å†…çš„æ–‡ä»¶ï¼Œé‡‡ç”¨æ–‡ä»¶å¤¹åç§°ä½œä¸ºæ•°æ®æ ‡è®°
 %,'ReadFcn',@mineRF
 
-% Êı¾İ¼¯Í¼Æ¬¸öÊı
+% æ•°æ®é›†å›¾ç‰‡ä¸ªæ•°
 countEachLabel(imds)
 
-numTrainFiles = 17;% Ã¿Ò»¸öÊı×ÖÓĞ22¸öÑù±¾£¬È¡17¸öÑù±¾×÷ÎªÑµÁ·Êı¾İ
-[imdsTrain,imdsValidation] = splitEachLabel(imds,numTrainFiles,'randomize');
-% ²é¿´Í¼Æ¬µÄ´óĞ¡
-img=readimage(imds,1);
-size(img)
+numTrainFiles = 17;% æ¯ä¸€ä¸ªæ•°å­—æœ‰22ä¸ªæ ·æœ¬ï¼Œå–17ä¸ªæ ·æœ¬ä½œä¸ºè®­ç»ƒæ•°æ®
+[imdsTrain,imdsValidation] = splitEachLabel(imds,numTrainFiles,'randomize');%éšæœºåˆ†é…imdsä¸­çš„17ä¸ªç»™è®­ç»ƒé›†ï¼Œå‰©ä½™çš„ç»™éªŒè¯é›†
+% æŸ¥çœ‹å›¾ç‰‡çš„å¤§å°
+img=readimage(imds,1);%è¯»å–å›¾ç‰‡ä¸ºMATLABçš„å¯å¤„ç†æ ¼å¼
+size(img)%è¯»å–å›¾ç‰‡é•¿å®½
 
-%% ¶¨Òå¾í»ıÉñ¾­ÍøÂçµÄ½á¹¹
+%% å®šä¹‰å·ç§¯ç¥ç»ç½‘ç»œçš„ç»“æ„
 layers = [
-% ÊäÈë²ã
-imageInputLayer([28 28 1])
-% ¾í»ı²ã
-convolution2dLayer(5,6,'Padding',2)
+% è¾“å…¥å±‚
+imageInputLayer([28 28 1])%[28 28 1]è¡¨ç¤ºheight, width, é¢œè‰²ä¸ºç°
+% å·ç§¯å±‚
+convolution2dLayer(5,6,'Padding',2)%6ä¸ª[5 5]çš„æ»¤æ³¢å™¨(æ ¸)ï¼Œä¸Šä¸‹å·¦å³åŠ ä¸¤è¡Œï¼Œå¡«å……ä¸º0
+batchNormalizationLayer%å½’ä¸€åŒ–
+reluLayer%æ¿€æ´»
+
+maxPooling2dLayer(2,'stride',2)%æœ€å¤§æ± åŒ–ï¼Œæ± åŒ–å°ºå¯¸[2 2],æ»‘ç§»[2 2]
+
+convolution2dLayer(5, 16)%16ä¸ª[5 5]å°ºå¯¸æ»¤æ³¢å™¨
+batchNormalizationLayer%å½’ä¸€åŒ–
+reluLayer%æ¿€æ´»
+
+maxPooling2dLayer(2,'stride',2)%æœ€å¤§æ± åŒ–ï¼Œæ± åŒ–å°ºå¯¸[2 2],æ»‘ç§»[2 2]
+
+convolution2dLayer(5, 120)%120ä¸ª[5 5]å°ºå¯¸æ»¤æ³¢å™¨
 batchNormalizationLayer
 reluLayer
+% æœ€ç»ˆå±‚
+fullyConnectedLayer(10)%è¾“å‡ºå°ºå¯¸10
+softmaxLayer%è¾“å‡ºå±‚
+classificationLayer];%åˆ†ç±»
 
-maxPooling2dLayer(2,'stride',2)
-
-convolution2dLayer(5, 16)
-batchNormalizationLayer
-reluLayer
-
-maxPooling2dLayer(2,'stride',2)
-
-convolution2dLayer(5, 120)
-batchNormalizationLayer
-reluLayer
-% ×îÖÕ²ã
-fullyConnectedLayer(10)
-softmaxLayer
-classificationLayer];
-
-%% ÑµÁ·Éñ¾­ÍøÂç
-% ÉèÖÃÑµÁ·²ÎÊı
+%% è®­ç»ƒç¥ç»ç½‘ç»œ
+% è®¾ç½®è®­ç»ƒå‚æ•°
 options = trainingOptions('sgdm',...
-    'maxEpochs', 50, ...
+    'maxEpochs', 50, ...%è¿­ä»£æ¬¡æ•°
     'ValidationData', imdsValidation, ...
-    'ValidationFrequency',5,...
-    'Verbose',false,...
-    'Plots','training-progress');% ÏÔÊ¾ÑµÁ·½ø¶È
+    'ValidationFrequency',5,...%éªŒè¯æŒ‡æ ‡è¯„ä¼°ä¹‹é—´çš„è¿­ä»£æ¬¡æ•°
+    'Verbose',false,...%å¯ç”¨è¿›åº¦æ˜¾ç¤º
+    'Plots','training-progress');% æ˜¾ç¤ºè®­ç»ƒè¿›åº¦
 
-% ÑµÁ·Éñ¾­ÍøÂç£¬±£´æÍøÂç
+% è®­ç»ƒç¥ç»ç½‘ç»œï¼Œä¿å­˜ç½‘ç»œ
 net = trainNetwork(imdsTrain, layers ,options);
 save 'CSNet.mat' net
 
-%% ±ê¼ÇÊı¾İ£¨ÎÄ¼şÃû³Æ·½Ê½£¬×ÔĞĞ¹¹Ôì£©
-mineSet = imageDatastore('./hw22/',  'FileExtensions', '.jpg',...
+%% æ ‡è®°æ•°æ®ï¼ˆæ–‡ä»¶åç§°æ–¹å¼ï¼Œè‡ªè¡Œæ„é€ ï¼‰
+mineSet = imageDatastore('./hw24/',  'FileExtensions', '.jpg',...
     'IncludeSubfolders', false);%%,'ReadFcn',@mineRF
 mLabels=cell(size(mineSet.Files,1),1);
 for i =1:size(mineSet.Files,1)
-[filepath,name,ext] = fileparts(char(mineSet.Files{i}));
+[filepath,name,ext] = fileparts(char(mineSet.Files{i}));%è·å–æ–‡ä»¶åçš„ç»„æˆéƒ¨åˆ†
 mLabels{i,1} =char(name);
 end
 mLabels2=categorical(mLabels);
 mineSet.Labels = mLabels2;
 
 
-%% Ê¹ÓÃÍøÂç½øĞĞ·ÖÀà²¢¼ÆËã×¼È·ĞÔ
-% ÊÖĞ´Êı¾İ
+%% ä½¿ç”¨ç½‘ç»œè¿›è¡Œåˆ†ç±»å¹¶è®¡ç®—å‡†ç¡®æ€§
+% æ‰‹å†™æ•°æ®
 YPred = classify(net,mineSet);
 YValidation =mineSet.Labels;
-% ¼ÆËãÕıÈ·ÂÊ
+% è®¡ç®—æ­£ç¡®ç‡
 accuracy = sum(YPred ==YValidation)/numel(YValidation);
-% »æÖÆÔ¤²â½á¹û
+% ç»˜åˆ¶é¢„æµ‹ç»“æœ
 figure;
 nSample=10;
 ind = randperm(size(YPred,1),nSample);
@@ -81,23 +81,23 @@ for i = 1:nSample
   
 subplot(2,fix((nSample+1)/2),i)
 imshow(char(mineSet.Files(ind(i))))
-title(['Ô¤²â£º' char(YPred(ind(i)))])
+title(['é¢„æµ‹ï¼š' char(YPred(ind(i)))])
 if char(YPred(ind(i))) ==char(YValidation(ind(i)))
-    xlabel(['ÕæÊµ:' char(YValidation(ind(i)))])
+    xlabel(['çœŸå®:' char(YValidation(ind(i)))])
 else
-    xlabel(['ÕæÊµ:' char(YValidation(ind(i)))],'color','r')
+    xlabel(['çœŸå®:' char(YValidation(ind(i)))],'color','r')
 end
 
 end
 
-% ÉìËõ+·´É«
+% ä¼¸ç¼©+åè‰²
 % function data =mineRF(filename)
 % img= imread(filename);
 % data=uint8(255-rgb2gray(imresize(img,[28 28])));
 % 
 % end
 
-% ¶şÖµ»¯ 
+% äºŒå€¼åŒ– 
 % function data =mineRF(filename)
 % img= imread(filename);
 % data=imbinarize(img);
