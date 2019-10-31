@@ -8,7 +8,7 @@ img=imresize(img,[1024 1024]);%调整图片大小为1024行1024列
 % 图片灰度化，文字反色
 imgGray =uint8(255- rgb2gray(img));%rgb2gray将rgb转化为灰度图
 % 拉平背景后进行二值化
-imgGrayBG=imgaussfilt(imgGray,5);%高斯滤波sigma=5
+imgGrayBG=imgaussfilt(imgGray,5);%高斯滤波σ=5
 imgGrayDiff=imgGray-imgGrayBG;
 imgBin=imbinarize(imgGrayDiff);%图像转化成二进制图像
 %填补孔洞
