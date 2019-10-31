@@ -1,29 +1,32 @@
-1.	导入并显示图像
+1.导入并显示图像
 img1=imread('file01.jpg')%读取图像
 imshow(img1) %显示图片
 img2=imread('file02.jpg');
 imshow(img2);
 img3=imread('file03.jpg');
 imshow(img3);
-2.	预测结果
-deepnet = alexnet;%加载预训练的网络
+
+2.预测结果
+deepnet = alexnet;%加载预训练网络Alexnet
 img1 = imread('file01.jpg');
 imshow(img1)
-pred1 = classify(deepnet,img1)%用deep net对img1分类
+pred1 = classify(deepnet,img1)%用deepnet对img1分类
 img2 = imread('file02.jpg');
 imshow(img2)
 pred2 = classify(deepnet,img2)
 img3 = imread('file03.jpg');
 imshow(img3)
 pred3= classify(deepnet,img3)
-3.	检查网络层
+
+3.检查网络架构
 deepnet = alexnet;
 ly=deepnet.Layers；%查看深度网络的层属性，非常详细
 inlayer=ly(1)；%提取第一层
 insz=inlayer.InputSize;%提取输入尺寸，alexnet要求尺寸为[227x227x3]；
 outlayer=ly(25);%提取最后一层信息
 categorynames=outlayer.Classes%提取分类类别名称，有1000种；
-4.	分类
+
+4.分类
 img = imread('file01.jpg');
 imshow(img)
 net = alexnet;
@@ -37,10 +40,11 @@ xticklabels(categorynames(highscores));%添加刻度标签
 %%thresh = median(scores) + std(scores);%高于中位数的一个标准差
 %%highscores = scores > thresh;
 %%关于刻度标签%%
-%%xticks(1:length(scores(highscores)))
-%%xticklabels(categorynames(highscores))
-%%xtickangle(60)
-5.	创建数据库
+%%xticks(1:length(scores(highscores))) %length元素数量或长度
+%%xticklabels(categorynames(highscores)) %刻度名
+%%xtickangle(60) %刻度名倾斜60°
+
+5.创建数据库
 ls *.jpg %显示当前文件夹的图像
 net = alexnet;%引入alexnet；
 imds=imageDatastore('file*.jpg')；%创建数据库，读取所有filexx.jpg;
@@ -48,33 +52,38 @@ fname=imds.Files;%提取imds数据库中的图像的文件名
 img=readimage(imds,7);%读取imds数据库里的第7个图
 preds=classify(net,imds);%分类imds数据库里的所有图片，结果存在preds里，12x1000矩阵
 %%max(scores,[ ],2)；%在每一行中找到最大元素
-6.	图像预处理
+
+6.图像预处理
 img = imread('file01.jpg');
 imshow(img)；
 sz=size(img);%查看大小
 net=alexnet;
 inlayer=net.Layers(1);
 insz=inlayer.InputSize;
-img=imresize(img,[227,227]);%重整大小
+img=imresize(img,[227,227]);%图片重整为[227,227]
 imshow(img);
-7.	调整数据库内的图像大小
+
+7.调整数据库内的图像大小
 ls *.jpg
 net = alexnet
 imds=imageDatastore('*.jpg');%创建当前文件夹下，所有jpg格式图片数据库
 auds=augmentedImageDatastore([227,227],imds);%创建增强图片数据库，图像尺寸为227x227
 preds=classify(net,auds);%使用alexnet对增强数据库预测
-8.	处理图片-转变灰色为彩色
+
+8.处理图片-转变灰色为彩色
 ls *.jpg；
 net = alexnet；
 imds = imageDatastore('file*.jpg')；
 montage(imds);%显示数据库里的图像
 auds=augmentedImageDatastore([227,227],imds,'ColorPreprocessing','gray2rgb');%用增强数据库函数，把灰色转变为彩色
 preds=classify(net,auds);
-9.	创建包含子文件夹下的数据库
+
+9.创建包含子文件夹下的数据库
 net = alexnet;
 flwrds = imageDatastore('Flowers','IncludeSubfolders',true)；%创建包含Flowers下的子文件夹内图像的数据库
 preds=classify(net,flwrds);
-10.	利用转移学习识别新数据库图像
+
+10.利用转移学习识别新数据库图像
 转移学习需要：基于预训练的神经网络；已标签过的数据库（子文件夹的名称可用于提供培训所需的标签）；修改的参数
 %创建新数据库，加载pathToImages文件夹
 load pathToImages
@@ -84,7 +93,8 @@ flowernames = flwrds.Labels
 flwrds=imageDatastore(pathToImages,'IncludeSubfolders',true,'LabelSource',"foldernames")
 %%ds = imageDatastore(folder,'IncludeSubfolders',true,'LabelSource','foldernames')
 flowernames=flwrds.Labels %提取新标签
-11.	数据库分割：训练集+测试集
+
+11.数据库分割：训练集+测试集
 load pathToImages
 flwrds = imageDatastore(pathToImages,'IncludeSubfolders',true,'LabelSource','foldernames')
 [flwrTrain,flwrTest]=splitEachLabel(flwrds,0.6)%默认规则分割，分割为60%训练集+40%测试集
@@ -96,6 +106,7 @@ fc=fullyConnectedLayer(12) %创建新层，包含12个神经元，分类12种花
 layers(23)=fc；把第23层替换为fc
 c1=classificationLayer %创建新分类层c1
 layers(25)=c1 %将第25层替换为c1
+
 12.	设置训练参数
 opts=trainingOptions('sgdm') %查看网络的默认参数，SGDM优化器默认训练算法
                                               %也可以尝试Adam优化器
@@ -103,7 +114,8 @@ opts=trainingOptions('sgdm') %查看网络的默认参数，SGDM优化器默认�
 opts=trainingOptions('sgdm','InitialLearnRate',0.001) %更改学习率为0.001
 使用小批量训练时，每个小批量完成是一个迭代，整个训练集完成是一个epoch，epoch的最大值和小批量的尺寸可以设置
 shuffle表示随机播放
-13.	转移学习代码（总结版）
+
+13.	转移学习代码（总结版）***
 Get training images
 flower_ds = imageDatastore('Flowers','IncludeSubfolders',true,'LabelSource','foldernames');%创建带标签的数据库
 [trainImgs,testImgs] = splitEachLabel(flower_ds,0.6);%数据库分割
@@ -119,6 +131,7 @@ Perform training
 [flowernet,info] = trainNetwork(trainImgs, layers, options);%用训练集、修改后的训练网络，训练好的网络为flowernet；
 Use trained network to classify test images
 testpreds = classify(flowernet,testImgs);%用flowernet对testImgs分类测试
+
 14.	评估训练和测试表现
 load pathToImages
 load trainedFlowerNetwork flowernet info
@@ -126,6 +139,7 @@ plot(info.TrainingLoss) %绘制Trainloss图（关于网络的性能指标之一�
 dsflowers = imageDatastore(pathToImages,'IncludeSubfolders',true,'LabelSource','foldernames');
 [trainImgs,testImgs] = splitEachLabel(dsflowers,0.98);
 flwrPreds=classify(flowernet,testImgs)
+
 15.	评估测试性能
 load pathToImages.mat
 pathToImages
@@ -136,6 +150,7 @@ flwrActual=testImgs.Labels %提取测试集的标签
 numCorrect=nnz(flwrPreds==flwrActual)%分类正确的数目
 fracCorrect=numCorrect/numel(flwrPreds)%计算正确分类比例
 confusionchart(testImgs.Labels,flwrPreds)%查看分类结果错误矩阵
+
 16.	其他注意事项
 学习率（InitialLearnRate）和动量（Momentum）影响算法如何更新权重
 防止过度拟合，需要训练时加入验证
