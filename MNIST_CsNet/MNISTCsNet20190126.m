@@ -5,19 +5,20 @@ close all
 %% 导入数据
 digitDatasetPath = fullfile('./', '/HandWrittenDataset/');
 imds = imageDatastore(digitDatasetPath, ...
-    'IncludeSubfolders',true,'LabelSource','foldernames');% 可读取全部子文件夹内的文件，采用文件夹名称作为数据标记
+    'IncludeSubfolders',true,'LabelSource','foldernames');% 【固定形式】可读取全部子文件夹内的文件，采用文件夹名称作为数据标记
 %,'ReadFcn',@mineRF
 
 % 数据集图片个数
 countEachLabel(imds)
 
 numTrainFiles = 17;% 每一个数字有22个样本，取17个样本作为训练数据
-[imdsTrain,imdsValidation] = splitEachLabel(imds,numTrainFiles,'randomize');%随机分配imds中的17个给训练集，剩余的给验证集
+[imdsTrain,imdsValidation] = splitEachLabel(imds,numTrainFiles,'randomize');%随机分配imds中的17个给训练集，剩余的给验证集。
+                                                                            %训练时，每隔几次训练就验证一次
 % 查看图片的大小
 img=readimage(imds,1);%读取图片为MATLAB的可处理格式
 size(img)%读取图片长宽
 
-%% 定义卷积神经网络的结构
+%% 定义卷积神经网络的结构，用预训练的网络不用自己搭建网络，只需要改参数
 layers = [
 % 输入层
 imageInputLayer([28 28 1])%[28 28 1]表示height, width, 颜色为灰
@@ -38,13 +39,13 @@ convolution2dLayer(5, 120)%120个[5 5]尺寸滤波器
 batchNormalizationLayer
 reluLayer
 % 最终层
-fullyConnectedLayer(10)%输出尺寸10
+fullyConnectedLayer(10)%输出尺寸10，能区分10个种类，可改
 softmaxLayer%输出层
 classificationLayer];%分类
 
 %% 训练神经网络
 % 设置训练参数
-options = trainingOptions('sgdm',...
+options = trainingOptions('sgdm',...%SGDM优化器，还有其他优化器
     'maxEpochs', 50, ...%迭代次数
     'ValidationData', imdsValidation, ...
     'ValidationFrequency',5,...%验证指标评估之间的迭代次数
