@@ -2,28 +2,37 @@ clc
 clear all
 close all
 %Get training images
-pipe_ds = imageDatastore('pipeimage','IncludeSubfolders',true,'LabelSource','foldernames');%´´½¨´ø±êÇ©µÄÊı¾İ¿â
-%auds=augmentedImageDatastore([227,227],pipe_ds);%´´½¨ÔöÇ¿Í¼Æ¬Êı¾İ¿â£¬Í¼Ïñ³ß´çÎª227x227
-[trainImgs,testImgs] = splitEachLabel(pipe_ds,0.6);%Êı¾İ¿â·Ö¸î
-train_auds=augmentedImageDatastore([227,227],trainImgs);%´´½¨ÔöÇ¿Í¼Æ¬Êı¾İ¿â£¬Í¼Ïñ³ß´çÎª227x227
-test_auds=augmentedImageDatastore([227,227],testImgs);%´´½¨ÔöÇ¿Í¼Æ¬Êı¾İ¿â£¬Í¼Ïñ³ß´çÎª227x227
-numClasses = numel(categories(pipe_ds.Labels));%¼ÆÊı·ÖÀàÖÖÀàÊıÄ¿
+pipe_ds = imageDatastore('pipeimage','IncludeSubfolders',true,'LabelSource','foldernames');%åˆ›å»ºå¸¦æ ‡ç­¾çš„æ•°æ®åº“
+%auds=augmentedImageDatastore([227,227],pipe_ds);%åˆ›å»ºå¢å¼ºå›¾ç‰‡æ•°æ®åº“ï¼Œå›¾åƒå°ºå¯¸ä¸º227x227
+[trainImgs,testImgs] = splitEachLabel(pipe_ds,0.6);%æ•°æ®åº“åˆ†å‰²
+train_auds=augmentedImageDatastore([227,227],trainImgs);%åˆ›å»ºå¢å¼ºå›¾ç‰‡æ•°æ®åº“ï¼Œå›¾åƒå°ºå¯¸ä¸º227x227
+test_auds=augmentedImageDatastore([227,227],testImgs);%åˆ›å»ºå¢å¼ºå›¾ç‰‡æ•°æ®åº“ï¼Œå›¾åƒå°ºå¯¸ä¸º227x227
+numClasses = numel(categories(pipe_ds.Labels));%è®¡æ•°åˆ†ç±»ç§ç±»æ•°ç›®
 %Create a network by modifying AlexNet
-net = alexnet;%ÔØÈëalexÍøÂç£¬Ò»ÖÖÔ¤ÑµÁ·ÍøÂç
-layers = net.Layers;%²é¿´alexÍøÂçµÄ²ãĞÅÏ¢
-layers(end-2) = fullyConnectedLayer(numClasses);%ĞŞ¸ÄÈ«Á¬½Ó²ãÊä³öÖÖÀàÎªÉÏÎÄ·ÖÀàÊıÄ¿
-layers(end) = classificationLayer;%ĞŞ¸Ä×îºóÒ»²ãÎª·ÖÀà²ã
+net = alexnet;%è½½å…¥alexç½‘ç»œï¼Œä¸€ç§é¢„è®­ç»ƒç½‘ç»œ
+layers = net.Layers;%æŸ¥çœ‹alexç½‘ç»œçš„å±‚ä¿¡æ¯
+layers(end-2) = fullyConnectedLayer(numClasses);%ä¿®æ”¹å…¨è¿æ¥å±‚è¾“å‡ºç§ç±»ä¸ºä¸Šæ–‡åˆ†ç±»æ•°ç›®
+layers(end) = classificationLayer;%ä¿®æ”¹æœ€åä¸€å±‚ä¸ºåˆ†ç±»å±‚
+
 %Set training algorithm options
-options = trainingOptions('sgdm','InitialLearnRate', 0.001);%Ê¹ÓÃSGDMÓÅ»¯Æ÷£¬ĞŞ¸ÄÑ§Ï°ÂÊÎª0.001
+options = trainingOptions('sgdm','InitialLearnRate', 0.001,'MiniBatchSize',64,);%ä½¿ç”¨SGDMä¼˜åŒ–å™¨ï¼Œä¿®æ”¹å­¦ä¹ ç‡ä¸º0.001
 %Perform training
-[pipenet,info] = trainNetwork(train_auds, layers, options);%ÓÃÑµÁ·¼¯¡¢ĞŞ¸ÄºóµÄÑµÁ·ÍøÂç£¬ÑµÁ·ºÃµÄÍøÂçÎªflowernet£»
+[pipenet,info] = trainNetwork(train_auds, layers, options);%ç”¨è®­ç»ƒé›†ã€ä¿®æ”¹åçš„è®­ç»ƒç½‘ç»œï¼Œè®­ç»ƒå¥½çš„ç½‘ç»œä¸ºflowernetï¼›
 %Use trained network to classify test images
-testpreds = classify(pipenet,test_auds);%ÓÃflowernet¶ÔtestImgs·ÖÀà²âÊÔ
-subplot(2,1,1)
-plot(info.TrainingLoss,'r') ;%»æÖÆTrainlossÍ¼
+testpreds = classify(pipenet,test_auds);%ç”¨pipenetå¯¹testImgsåˆ†ç±»æµ‹è¯•
+subplot(3,1,1)
+plot(info.TrainingLoss,'r') ;%ç»˜åˆ¶Trainlosså›¾
+title('TrainLoss');
 ylabel('TrainingLossRate');
 xlabel('Epochs');
-subplot(2,1,2)
-plot(info.TrainingAccuracy,'b') ;%»æÖÆTrainlossÍ¼
+subplot(3,1,2)
+plot(info.TrainingAccuracy,'b') ;%ç»˜åˆ¶Trainlosså›¾
+title('TrainAccuracy');
 ylabel('TrainingLossRate');
 xlabel('Epochs');
+subplot(3,1,3)
+testactual=testImgs.Labels;
+confusionchart(testactual,testpreds);%ç»˜åˆ¶æ··æ·†çŸ©é˜µ,è¯¥å‡½æ•°ä½¿ç”¨æ—¶ä¸èƒ½åœ¨å…¶ä¸­å«æœ‰è¿ç®—æ­¥éª¤
+title('confusionchart');
+numCorrect=nnz(testpreds==testactual);
+fracCorrect=numCorrect/numel(testpreds)
