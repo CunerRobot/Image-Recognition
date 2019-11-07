@@ -26,12 +26,41 @@ options = trainingOptions('sgdm',...%使用SGDM优化器
 [pipenet,info] = trainNetwork(train_auds,layers, options);%用训练集、修改后的训练网络，训练好的网络为flowernet；
 %Use trained network to classify test images
 save 'pipenet.mat' pipenet%将训练好的网络存储为net，以备调用
-%% 
+%% 真实管道图片测试
 testSet = imageDatastore('testimage');
 testauds=augmentedImageDatastore([227,227],testSet);
 preds=classify(pipenet,testauds);
 size=numel(preds);
-for i=1:size
-    imshow(char(testSet.Files(i)))
-    title(['预测：' char(preds(i))])      
+
+for m=1:(fix(size/12)+1);
+    figure(m)
+    for n=12*(m-1)+1:12*m;
+            subplot(4,3,n-12*(m-1))
+            imshow(char(testSet.Files(n)))
+            xlabel([n]);%提取imds数据库中的图像的文件名
+            title(['预测：' char(preds(n))]) 
+           
+    end
 end
+%% 创建数据库
+mkdir result_image
+size=numel(preds);
+for a=1
+   figure(a)
+   imshow(char(testSet.Files(a)))
+   xlabel([a]);%提取imds数据库中的图像的文件名
+   title(['预测：' char(preds(a))])
+   psaveas(gcf,[resultimage(a),'.png'])
+   
+   % 同时可以使用下面的形式保存图片数据，把图片保存到指定文件夹，并对文件名进行编号
+   %f=getimage(gcf);% 获取坐标系中的图像文件数据
+   %imwrite(f.cdata,['F:\result_image\',resultimage(a),'.jpg']);
+   close figure(a)
+end
+%% 查看某张图像详细特征
+prompt = 'Which image do you want to check? ';
+q = input(prompt);
+figure(m+1)
+imshow(char(testSet.Files(q)))
+xlabel([q]);%提取imds数据库中的图像的文件名
+title(['预测：' char(preds(q))]);
