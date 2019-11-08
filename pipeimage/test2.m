@@ -21,7 +21,7 @@ options = trainingOptions('sgdm',...%使用SGDM优化器
     'ValidationData', Validation_auds,...%训练过程中验证
     'ValidationFrequency',5,...%验证指标评估之间的迭代次数
     'Plots','training-progress');%显示训练过程
-                                                                                                                          %最小批量为16，显示训练过程
+                                 %最小批量为16，显示训练过程
 %Perform training
 [pipenet,info] = trainNetwork(train_auds,layers, options);%用训练集、修改后的训练网络，训练好的网络为flowernet；
 %Use trained network to classify test images
@@ -35,27 +35,12 @@ size=numel(preds);
 for m=1:(fix(size/12)+1);
     figure(m)
     for n=12*(m-1)+1:12*m;
-            subplot(4,3,n-12*(m-1))
-            imshow(char(testSet.Files(n)))
-            xlabel([n]);%提取imds数据库中的图像的文件名
-            title(['预测：' char(preds(n))]) 
-           
+            
+        subplot(4,3,n-12*(m-1))
+        imshow(char(testSet.Files(n)))
+        xlabel([n]);%提取imds数据库中的图像的文件名
+        title(['预测：' char(preds(n))]) 
     end
-end
-%% 创建数据库
-mkdir result_image
-size=numel(preds);
-for a=1
-   figure(a)
-   imshow(char(testSet.Files(a)))
-   xlabel([a]);%提取imds数据库中的图像的文件名
-   title(['预测：' char(preds(a))])
-   psaveas(gcf,[resultimage(a),'.png'])
-   
-   % 同时可以使用下面的形式保存图片数据，把图片保存到指定文件夹，并对文件名进行编号
-   %f=getimage(gcf);% 获取坐标系中的图像文件数据
-   %imwrite(f.cdata,['F:\result_image\',resultimage(a),'.jpg']);
-   close figure(a)
 end
 %% 查看某张图像详细特征
 prompt = 'Which image do you want to check? ';
